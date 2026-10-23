@@ -107,7 +107,7 @@ class Plugin:
     name = PLUGIN_NAME
     version = "0.2.0"
     description = "Clean up messy IPTV channel names — preview, protect-list, collision strategy, stats, fast bulk apply, multi-undo and an optional scheduler."
-    author = "FetchLabs"
+    author = "noodlemctwoodle"
     help_url = "https://github.com/noodlemctwoodle/dispatcharr-channel-name-cleaner"
 
     def __init__(self):
