@@ -25,9 +25,11 @@ from django.db import transaction
 
 LOGGER = logging.getLogger("plugins.channel_name_cleaner")
 
-PLUGIN_KEY = "channel_name_cleaner"
 PLUGIN_NAME = "Channel Name Cleaner"
 PLUGIN_DIR = os.path.dirname(os.path.abspath(__file__))
+# Derive the key from the install folder so it matches whatever slug it was installed under
+# (the store uses 'channel-name-cleaner'; a manual drop-in may use 'channel_name_cleaner').
+PLUGIN_KEY = os.path.basename(PLUGIN_DIR)
 BACKUP_DIR = os.path.join(PLUGIN_DIR, "backups")
 PREVIEW_CSV = os.path.join(PLUGIN_DIR, "last_preview.csv")
 SUMMARY_TXT = os.path.join(PLUGIN_DIR, "last_summary.txt")
