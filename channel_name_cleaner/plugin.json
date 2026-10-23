@@ -1,0 +1,58 @@
+{
+  "name": "Channel Name Cleaner",
+  "version": "0.2.0",
+  "description": "Cleans up messy IPTV channel names — strips pipe/bracket quality tags (| HD |, (1080p), [VIP]), dangling separators and fancy-unicode marks. Dry-run preview, per-group scope, a protect-list, a collision strategy (Channel.name is unique), per-rule/group stats, fast bulk apply, timestamped multi-undo, a single-name tester and an optional scheduler.",
+  "author": "FetchLabs",
+  "license": "MIT",
+  "help_url": "https://github.com/noodlemctwoodle/dispatcharr-channel-name-cleaner",
+  "repo_url": "https://github.com/noodlemctwoodle/dispatcharr-channel-name-cleaner",
+  "min_dispatcharr_version": "v0.20.0",
+  "fields": [
+    {"id": "_section_quickstart", "label": "Quick Start", "type": "info", "description": "Workflow: 1) 👁️ Preview (dry run) — nothing is written. 2) Review the summary + last_preview.csv. 3) ✅ Apply (a timestamped backup is saved). 4) ↩️ Undo Last peels back the most recent Apply. Use 🧪 Test a Name to try the rules on one name. Defaults are conservative."},
+
+    {"id": "_section_scope", "label": "Scope", "type": "info", "description": "Limit which channels are considered, matched against the channel's Group."},
+    {"id": "selected_groups", "label": "Only These Groups", "type": "text", "default": "", "placeholder": "e.g. UK | + 1's, UK | Entertainment", "help_text": "Comma-separated group names. Empty = every group."},
+    {"id": "ignore_groups", "label": "Ignore These Groups", "type": "text", "default": "", "placeholder": "e.g. VIP | Cinema Collection", "help_text": "Comma-separated group names to exclude (after 'Only These Groups')."},
+
+    {"id": "_section_rules", "label": "Cleanup Rules", "type": "info", "description": "The defaults only remove junk formatting. The riskier rules are OFF by default."},
+    {"id": "strip_pipe_junk", "label": "Strip pipe-delimited junk & quality tags", "type": "boolean", "default": true, "help_text": "Splits on '|', drops empty + quality-only segments, rejoins. 'Rte One +1 | HD |' -> 'Rte One +1'."},
+    {"id": "strip_bracketed_junk", "label": "Strip bracketed quality/junk tags", "type": "boolean", "default": true, "help_text": "Removes (1080p), (720p), [VIP], [Multi] etc. — only when the brackets contain nothing but junk tokens, so '(Moldova)' survives."},
+    {"id": "strip_unicode_quality", "label": "Strip fancy-unicode quality marks", "type": "boolean", "default": true, "help_text": "Removes superscript marks like 'ᴴᴰ'. '007 ᴴᴰ' -> '007'."},
+    {"id": "unicode_nfkc", "label": "Unicode NFKC normalize", "type": "boolean", "default": false, "help_text": "Folds stylised/full-width characters to plain ASCII. OFF by default."},
+    {"id": "join_separator", "label": "Join Separator", "type": "text", "default": " ", "placeholder": "a space, or ' - '", "help_text": "How remaining pipe segments are rejoined. 'Sky Sports+ | Event 03' -> 'Sky Sports+ Event 03' (space) or '... - Event 03'."},
+    {"id": "normalize_whitespace", "label": "Collapse extra whitespace", "type": "boolean", "default": true, "help_text": "Collapses multiple spaces and trims."},
+    {"id": "normalize_plus_one", "label": "Normalize '+1' spacing (risky)", "type": "boolean", "default": false, "help_text": "'Channel 4+1' -> 'Channel 4 +1'. OFF — can mangle channels named like '1+1 International'."},
+    {"id": "fix_casing", "label": "Title-case names (risky)", "type": "boolean", "default": false, "help_text": "OFF — fights broadcaster acronyms (BBC, ITV, RTE)."},
+
+    {"id": "_section_collisions", "label": "Collisions", "type": "info", "description": "Channel.name is unique. When a cleaned name would duplicate another channel, choose what to do."},
+    {"id": "collision_strategy", "label": "On Collision", "type": "select", "default": "suffix",
+     "options": [
+       {"value": "suffix", "label": "Keep a clean quality suffix (Sky Cinema Disney FHD)"},
+       {"value": "numeric", "label": "Append a number (Sky Cinema Disney (2))"},
+       {"value": "skip", "label": "Skip — leave the original name"}
+     ],
+     "help_text": "'suffix' recovers HD/FHD/SD variants as distinct clean names; falls back to a number if there's no quality tag to reuse."},
+
+    {"id": "_section_safety", "label": "Safety / Protect-list", "type": "info", "description": "Channels matched here are NEVER renamed."},
+    {"id": "protected_groups", "label": "Protected Groups", "type": "text", "default": "Todays Live Events, Info | Service Status", "placeholder": "Group A, Group B", "help_text": "Comma-separated group names to skip entirely."},
+    {"id": "protect_foreign_scripts", "label": "Protect non-Latin names", "type": "boolean", "default": true, "help_text": "Skip names with Cyrillic/Greek/Arabic/Hebrew/Devanagari/CJK/Hangul text."},
+    {"id": "protect_leading_symbol", "label": "Protect names starting with '&'", "type": "boolean", "default": true, "help_text": "Skip channels like '&TV', '&flix'."},
+    {"id": "protect_regex", "label": "Custom Protect Regex", "type": "text", "default": "", "placeholder": "e.g. ^(PPV|Event)\\b", "help_text": "Any channel name matching this regex is left untouched."},
+
+    {"id": "_section_schedule", "label": "Scheduler", "type": "info", "description": "Optionally re-run Apply automatically (the plugin must be enabled). Handy because an M3U re-sync can re-dirty names from the source."},
+    {"id": "enable_schedule", "label": "Enable Scheduled Auto-Clean", "type": "boolean", "default": false, "help_text": "When ON, runs Apply on the interval below using these saved settings. Preview first so you trust the rules."},
+    {"id": "schedule_hours", "label": "Run Every (hours)", "type": "number", "default": 12, "help_text": "How often the scheduled Apply runs."},
+
+    {"id": "_section_advanced", "label": "Advanced", "type": "info", "description": "Extra find/replace, a single-name tester, and preview size."},
+    {"id": "custom_rules", "label": "Custom Rules (regex)", "type": "text", "default": "", "placeholder": "pattern => replacement (one per line)", "help_text": "Python regex, one 'regex => replacement' per line. e.g. '\\bRte\\b => RTE'."},
+    {"id": "test_name", "label": "Test a Name", "type": "text", "default": "", "placeholder": "Sky Atlantic | FHD |", "help_text": "Type a name here, then run 🧪 Test a Name to see the result + which rules fired."},
+    {"id": "max_preview_rows", "label": "Max Preview Rows Shown", "type": "number", "default": 400, "help_text": "Examples listed on screen. The full set is always written to the CSV."}
+  ],
+  "actions": [
+    {"id": "preview", "label": "Preview Cleanup (Dry Run)", "button_label": "👁️ Preview", "description": "Compute before → after for every in-scope channel and write a CSV. Nothing is changed.", "button_variant": "outline", "button_color": "cyan"},
+    {"id": "test_name", "label": "Test a Name", "button_label": "🧪 Test a Name", "description": "Run the rules against the single name in 'Test a Name' and show the result.", "button_variant": "outline", "button_color": "blue"},
+    {"id": "apply", "label": "Apply Cleanup", "button_label": "✅ Apply", "description": "Rename the channels the preview would change (collisions handled per strategy). A timestamped backup is saved first.", "button_variant": "filled", "button_color": "orange", "confirm": {"message": "This will rename channels in Dispatcharr. A backup is saved and you can Undo. Continue?"}},
+    {"id": "undo_last", "label": "Undo Last Apply", "button_label": "↩️ Undo Last", "description": "Restore channel names from the most recent Apply backup (repeat to peel back earlier applies).", "button_variant": "filled", "button_color": "red", "confirm": {"message": "Restore channel names from the most recent Apply backup?"}},
+    {"id": "status", "label": "Last Results", "button_label": "📊 Last Results", "description": "Show the summary of the last preview / apply / undo.", "button_variant": "outline", "button_color": "blue"}
+  ]
+}

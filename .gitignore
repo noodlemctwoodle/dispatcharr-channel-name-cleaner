@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+# runtime artifacts (written on the server, not source)
+channel_name_cleaner/backups/
+channel_name_cleaner/last_*.csv
+channel_name_cleaner/last_summary.txt
